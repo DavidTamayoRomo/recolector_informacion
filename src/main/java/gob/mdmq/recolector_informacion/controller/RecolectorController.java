@@ -13,11 +13,9 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 
 import gob.mdmq.recolector_informacion.model.Recolector;
@@ -53,9 +51,23 @@ public class RecolectorController {
                 if (recorridos >= totalDatos) {
                     System.out.println("1. No hay mas datos, ir al siguiente registro");
                     List<String> collectionName = obtenerColecciones();
+                    int numeroColecciones = collectionName.size();
+
                     int indice = collectionName.indexOf(ultimoRegistro.getColeccion_actual());
-                    String coleccion_actual = collectionName.get(indice + 1);
-                    String coleccion_siguiente = collectionName.get(indice + 2);
+                    
+                    int indiceActual = indice + 1;
+                    int indiceSiguiente = indice + 2;
+
+
+                    if ( indiceSiguiente >= numeroColecciones) {
+                          indiceSiguiente = 0;
+                    }
+                    if ( indiceActual >= numeroColecciones) {
+                        indiceActual = 0;  
+                        indiceSiguiente = 1;
+                    }
+                    String coleccion_actual = collectionName.get(indiceActual);
+                    String coleccion_siguiente = collectionName.get(indiceSiguiente);
 
                     FindIterable<Document> resultado = mongoOperations
                             .getCollection(coleccion_actual).find().skip(0)
@@ -66,7 +78,7 @@ public class RecolectorController {
                     recolector.setColeccion_actual(coleccion_actual);
                     recolector.setColeccion_siguiente(coleccion_siguiente);
                     recolector.setTotal_datos(mongoOperations.getCollection(coleccion_actual).countDocuments());
-                    recolector.setRecorridos(5000);
+                    recolector.setRecorridos(documentList.size());
                     recolector.setFecha(new Date());
                     recolectorRepository.save(recolector);
 
@@ -95,7 +107,7 @@ public class RecolectorController {
                     recolector.setColeccion_siguiente(ultimoRegistro.getColeccion_siguiente());
                     recolector.setTotal_datos(
                             mongoOperations.getCollection(ultimoRegistro.getColeccion_actual()).countDocuments());
-                    recolector.setRecorridos(recorrido + 5000);
+                    recolector.setRecorridos(recorrido + documentList.size());
                     recolector.setFecha(new Date());
                     recolectorRepository.save(recolector);
 
@@ -122,7 +134,7 @@ public class RecolectorController {
                 recolector.setColeccion_actual(coleccion_actual);
                 recolector.setColeccion_siguiente(coleccion_siguiente);
                 recolector.setTotal_datos(mongoOperations.getCollection(coleccion_actual).countDocuments());
-                recolector.setRecorridos(5000);
+                recolector.setRecorridos(documentList.size());
                 recolector.setFecha(new Date());
                 recolectorRepository.save(recolector);
 
